@@ -1,5 +1,6 @@
+-- Ejercicio 2
 select * from oficina;
-SELECT codigo_oficina, ciudad FROM oficina;
+select codigo_oficina, ciudad FROM oficina;
 select ciudad, pais, telefono from oficina where pais ="España";
 select * from empleado;
 select nombre,apellido1,apellido2,email,codigo_jefe from empleado where codigo_jefe = 7 order by apellido1;
@@ -10,8 +11,8 @@ select nombre_cliente as Nombre_Cliente , pais as Pais from cliente where pais =
 select * from pedido;
 select estado as Estado_Pedidos from pedido group by estado order by estado;
 select * from pago;
-select DISTINCT codigo_cliente from pago where year(fecha_pago)= 2008;
-select DISTINCT codigo_cliente from pago where date_format(fecha_pago, "%Y")= "2008";
-select DISTINCT codigo_cliente from pago where fecha_pago >= '2008-01-01' AND fecha_pago < '2009-01-01';
+select distinct codigo_cliente from pago where year(fecha_pago)= 2008;
+select distinct codigo_cliente from pago where date_format(fecha_pago, "%Y")= "2008";
+select distinct codigo_cliente from pago where fecha_pago >= '2008-01-01' AND fecha_pago < '2009-01-01';
 
 

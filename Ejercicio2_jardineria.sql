@@ -224,6 +224,114 @@ select codigo_producto as Producto, round(sum(cantidad*precio_unidad)) as Factur
 round((sum(cantidad*precio_unidad)*0.21)) as IVA,
 round((sum(cantidad*precio_unidad)*1.21)) as TotalFacturado
 from detalle_pedido group by codigo_producto order by codigo_producto;
+-- 17. La misma información pregunta anterior agrupada por código de producto 
+-- filtrada por los códigos que empiecen por OR.
+select codigo_producto as Producto, round(sum(cantidad*precio_unidad)) as Facturacion, 
+round((sum(cantidad*precio_unidad)*0.21)) as IVA,
+round((sum(cantidad*precio_unidad)*1.21)) as TotalFacturado
+from detalle_pedido where codigo_producto like "OR%" 
+group by codigo_producto order by codigo_producto;
+-- 18. Ventas totales productos facturados más de 3000 euros. 
+-- 	Nombre, unidades vendidas, total facturado y total facturado con impuestos (21% IVA)
+select codigo_producto as Producto, round(sum(cantidad)) as UnidadesVendidas, round(sum(cantidad*precio_unidad)) as Facturacion, 
+round((sum(cantidad*precio_unidad)*0.21)) as IVA,
+round((sum(cantidad*precio_unidad)*1.21)) as TotalFacturado
+from detalle_pedido group by codigo_producto Having round(sum(cantidad*precio_unidad)) > 3000
+order by codigo_producto;
+
+-- Subconsultas con operadores básicos de comparación
+-- 1. Nombre del cliente con mayor límite de crédito.
+select nombre_cliente as Cliente, round(limite_credito) as LimiteCredito from cliente 
+order by limite_credito desc limit 1;
+-- 2. Producto que tenga el precio de venta más caro.
+select nombre as Producto, round(precio_venta) as Precio from producto
+order by precio_venta desc limit 1;
+-- 3. Nombre del producto con mas ventas. Calcular número total unidades vendidas. 
+select producto.codigo_producto as Producto, producto.nombre as NombreProducto, round(sum(detalle_pedido.cantidad)) as UnidadesVendidas from detalle_pedido
+inner join producto on detalle_pedido.codigo_producto=producto.codigo_producto
+group by detalle_pedido.codigo_producto order by round(sum(detalle_pedido.cantidad)) desc limit 1;
+-- 4. Clientes cuyo límite de crédito sea mayor que los pagos que haya realizado.(Sin utilizar INNER JOIN).
+select cliente.nombre_cliente as Cliente, round(cliente.limite_credito) as LimiteCredito,
+round((select sum(total) from pago where pago.codigo_cliente = cliente.codigo_cliente)) as TotalPagos,
+round(cliente.limite_credito - (select sum(total) from pago where pago.codigo_cliente=cliente.codigo_cliente)) as Diferencia
+from cliente where round(cliente.limite_credito)>round((select sum(total) from pago where pago.codigo_cliente = cliente.codigo_cliente))
+order by cliente.nombre_cliente;
+-- 5. Producto que más unidades tiene en stock.
+select nombre as Nombre, cantidad_en_stock as Stock, (max(cantidad_en_stock)) as StockMayor from producto
+group by nombre, cantidad_en_stock
+having cantidad_en_stock= (select max(cantidad_en_stock) from producto);
+-- 6. Producto que menos unidades tiene en stock.
+select nombre as Nombre, cantidad_en_stock as Stock, (min(cantidad_en_stock)) as StockMinimo from producto
+group by nombre, cantidad_en_stock
+having cantidad_en_stock= (select min(cantidad_en_stock) from producto);
+-- 7. Nombre, apellidos y email empleados que están a cargo de Alberto Soria.
+select E1.nombre as Empleado, E1.apellido1 as Apellido, E1.apellido2 as "", E1.email as Email, 
+E2.nombre as NombreJefe, E2.apellido1 as ApellidoJefe from empleado as E2
+right join empleado as E1 on E1.codigo_jefe = E2.codigo_empleado
+where E2.nombre="Alberto" and E2.apellido1="Soria";
+-- 7.1 Usando Concatenar
+select (concat(E1.nombre,"  ",E1.apellido1,"  ",E1.apellido2)) as Empleado, E1.email as Email,
+(concat(E2.nombre,"  ",E2.apellido1,"  ",E2.apellido2)) as Jefe
+from empleado E2 right join empleado as E1 on E1.codigo_jefe = E2.codigo_empleado
+where E2.nombre="Alberto" and E2.apellido1="Soria";
+
+-- Subconsultas con ALL y ANY
+-- 1. Nombre del cliente con mayor límite de crédito.
+-- ALL
+select nombre_cliente as Cliente, round(limite_credito) as LimiteCredito from cliente 
+where limite_credito = all (select max(limite_credito) from cliente);
+-- ANY
+select nombre_cliente as Cliente, round(limite_credito) as LimiteCredito from cliente 
+where limite_credito = any (select max(limite_credito) from cliente);
+-- 2. Producto que tenga el precio de venta más caro.
+-- ALL
+select nombre as Producto, round(precio_venta) as Precio from producto
+where precio_venta = all (select max(precio_venta) from producto);
+-- ANY
+select nombre as Producto, round(precio_venta) as Precio from producto
+where precio_venta = any (select max(precio_venta) from producto);
+-- 3. Producto que menos unidades tiene en stock.
+-- ALL
+select nombre as Nombre, cantidad_en_stock as Stock from producto
+where cantidad_en_stock = all (select min(cantidad_en_stock) from producto);
+-- ANY
+select nombre as Nombre, cantidad_en_stock as Stock from producto
+where cantidad_en_stock = any (select min(cantidad_en_stock) from producto);
+
+-- Subconsultas con IN y NOT IN
+-- 1. Nombre, apellido1 y cargo de los empleados que no representen a ningún cliente.
+select nombre as Nombre, apellido1 as Apellido , puesto as Cargo from empleado
+where codigo_empleado not in (select codigo_empleado_rep_ventas from cliente);
+-- 2. Clientes que no han realizado ningún pago.
+select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
+where codigo_cliente not in (select codigo_cliente from pago) order by nombre_cliente;
+-- 3. Clientes que sí han realizado ningún pago.
+select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
+where codigo_cliente in (select codigo_cliente from pago) order by nombre_cliente;
+-- 4. Productos que nunca han aparecido en un pedido.
+select codigo_producto as ProductoNro, nombre as Prodcuto from producto
+where codigo_producto not in (select codigo_producto from detalle_pedido) order by codigo_producto;
+-- 5. Nombre,apellidos,puesto y teléfono oficina empleados que no sean representante de ventas ningun cliente.
+select nombre as Nombre, apellido1 as Apellido , puesto as Cargo, extension as TelInterno from empleado
+where codigo_empleado not in (select codigo_empleado_rep_ventas from cliente) 
+and codigo_oficina in (select codigo_oficina from oficina)
+and puesto<>"Representante Ventas" order by puesto;
+-- REVISAR
+
+-- Subconsultas con EXISTS y NOT EXISTS
+-- 1. Listado Clientes que no han realizado ningún pago.
+select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
+where not exists(select * from pago where cliente.codigo_cliente=pago.codigo_cliente) order by nombre_cliente;
+-- 2. Listado que muestre solamente los clientes que sí han realizado ningún pago.
+select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
+where exists(select * from pago where cliente.codigo_cliente=pago.codigo_cliente) order by nombre_cliente;
+-- 3. Listado de los productos que nunca han aparecido en un pedido.
+select codigo_producto as ProductoNro, nombre as Prodcuto from producto
+where  not exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) order by codigo_producto;
+-- 4. Listado de los productos que han aparecido en un pedido alguna vez.
+select codigo_producto as ProductoNro, nombre as Prodcuto from producto
+where  exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) order by codigo_producto;
+
 
 
 

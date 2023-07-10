@@ -30,7 +30,7 @@ select distinct codigo_cliente from pago where year(fecha_pago)= 2008;
 select distinct codigo_cliente from pago where date_format(fecha_pago, "%Y")= "2008";
 -- Sin Funcion
 select distinct codigo_cliente from pago where fecha_pago >= '2008-01-01' AND fecha_pago < '2009-01-01';
--- LIstado Pedidos
+-- Listado Pedidos
 select * from pedido;
 -- 9. Listado código pedido,código cliente, fecha esperada y fecha entrega
 --   pedidos que no han sido entregados a tiempo.
@@ -153,18 +153,25 @@ where detalle_pedido.codigo_pedido is null group by nombre,pedido
 order by producto.nombre ;
 -- 8. Oficinas sin ningun empleado que hayan sido representante ventas 
 -- de un cliente que haya realizado la compra de algún producto de la gama Frutales.
--- REVISAR
-
+select cliente.nombre_cliente as Nombre,pedido.codigo_cliente as Pedido,producto.gama as Gama from cliente
+inner join pedido on cliente.codigo_cliente=pedido.codigo_cliente
+inner join detalle_pedido on detalle_pedido.codigo_pedido=pedido.codigo_pedido
+inner join producto on detalle_pedido.codigo_producto=producto.codigo_producto
+inner join empleado on cliente.codigo_empleado_rep_ventas=empleado.codigo_empleado
+where empleado.puesto<>"Representante Ventas" and producto.gama="Frutales"
+group by cliente.nombre_cliente,pedido.codigo_cliente,producto.gama;
 -- 9. Clientes que han realizado algún pedido, pero no han realizado ningún pago.
 select cliente.nombre_cliente as Cliente,pedido.fecha_pedido as Pedido, pago.fecha_pago as Pago from cliente
 left join pedido on cliente.codigo_cliente=pedido.codigo_cliente
 left join pago on cliente.codigo_cliente=pago.codigo_cliente
 where pedido.fecha_pedido is not null and pago.fecha_pago is null;
 -- 10. Empleados que no tienen clientes asociados y el nombre de su jefe asociado.
-select E1.nombre as Empleado, cliente.nombre_cliente as Cliente, E2.nombre as E2 from empleado
-left join cliente on cliente.codigo_empleado_rep_ventas=empleado.codigo_empleado
-right join empleado as E1 on E1.codigo_jefe = E2.codigo_empleado
-where cliente.codigo_empleado_rep_ventas is null and empleado.codigo_jefe is not null order by empleado.nombre;
+select concat(E1.nombre," ",E1.apellido1) as Empleado, cliente.nombre_cliente as Cliente, concat(E2.nombre," ",E2.apellido1) as Jefe from empleado
+left join cliente on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
+right join empleado as E1 on E1.codigo_jefe = empleado.codigo_empleado
+left join empleado as E2 on E1.codigo_jefe = E2.codigo_empleado
+where cliente.codigo_empleado_rep_ventas is null and empleado.codigo_jefe is null
+order by empleado.nombre;
 -- REVISAR
 
 -- Consultas resumen

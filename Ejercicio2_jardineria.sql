@@ -1,3 +1,4 @@
+-- Active: 1688148886797@@Localhost@3306@jardineria
 -- ## JARDINERIA ##
 -- Listado Oficinas
 select * from oficina;
@@ -109,9 +110,9 @@ select E1.nombre as Empleado, E2.nombre as Jefe from empleado as E2
 right join empleado as E1 on E1.codigo_jefe = E2.codigo_empleado;
 -- 9. Nombre clientes no se les entrego a tiempo pedido.
 select cliente.codigo_cliente as Cliente, cliente.nombre_cliente as Nombre, pedido.fecha_esperada as Prometido,
-pedido.fecha_entrega as Entregado, (fecha_entrega-fecha_esperada) as Diferencia from cliente
+pedido.fecha_entrega as Entregado, datediff(fecha_entrega,fecha_esperada) as Diferencia from cliente
 inner join pedido on pedido.codigo_cliente=cliente.codigo_cliente 
-where pedido.fecha_entrega>pedido.fecha_esperada order by cliente.nombre_cliente;
+where datediff(fecha_entrega,fecha_esperada)>0 order by cliente.nombre_cliente;
 -- 10. Diferentes gamas de producto que ha comprado cada cliente.
 select cliente.codigo_cliente as Cliente, cliente.nombre_cliente as Nombre, producto.gama as Gama from cliente
 inner join pedido on pedido.codigo_cliente=cliente.codigo_cliente
@@ -132,7 +133,7 @@ where pedido.fecha_pedido is null;
 select cliente.nombre_cliente as Cliente, pedido.fecha_pedido as Pedido,pago.fecha_pago as Pago from cliente
 left join pedido on cliente.codigo_cliente=pedido.codigo_cliente
 left join pago on cliente.codigo_cliente=pago.codigo_cliente
-where pedido.fecha_pedido is null and pedido.fecha_pedido is null ;
+where pedido.fecha_pedido is null and pago.fecha_pago is null ;
 -- 4. Empleados que no tienen una oficina asociada.
 select empleado.nombre as Empleado, empleado.codigo_oficina from empleado
 left join oficina on empleado.codigo_oficina=oficina.codigo_oficina
@@ -166,17 +167,14 @@ left join pedido on cliente.codigo_cliente=pedido.codigo_cliente
 left join pago on cliente.codigo_cliente=pago.codigo_cliente
 where pedido.fecha_pedido is not null and pago.fecha_pago is null;
 -- 10. Empleados que no tienen clientes asociados y el nombre de su jefe asociado.
-select concat(E1.nombre," ",E1.apellido1) as Empleado, cliente.nombre_cliente as Cliente, concat(E2.nombre," ",E2.apellido1) as Jefe from empleado
-left join cliente on cliente.codigo_empleado_rep_ventas = empleado.codigo_empleado
-right join empleado as E1 on E1.codigo_jefe = empleado.codigo_empleado
-left join empleado as E2 on E1.codigo_jefe = E2.codigo_empleado
-where cliente.codigo_empleado_rep_ventas is null and empleado.codigo_jefe is null
-order by empleado.nombre;
--- REVISAR
+select distinct e2.nombre as Empelado, e1.nombre as Jefe, c.nombre_cliente  from empleado as e1
+inner join empleado as e2 on e1.codigo_empleado = e2.codigo_jefe
+left join cliente c on c.codigo_empleado_rep_ventas = e1.codigo_empleado
+where c.nombre_cliente is null group by 1,2,3 order by e1.nombre,e2.nombre; 
 
 -- Consultas resumen
 -- 1. Cuántos empleados hay en la compañía.
-select count(*) from empleado;
+select count(*)  as Total from empleado;
 -- Total Clientes.
 select count(*) from cliente;
 -- 2. Cuántos clientes tiene cada país.

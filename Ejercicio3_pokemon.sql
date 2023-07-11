@@ -53,19 +53,42 @@ select pokemon.nombre as Nombre, movimiento.nombre as Movimientos from pokemon
 inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
 inner join movimiento on pokemon_movimiento_forma.id_movimiento=movimiento.id_movimiento
 where pokemon.nombre="Pikachu" group by movimiento.nombre order by movimiento.nombre;
--- REVISAR
+-- 15.1 Otra opcion --
+select m.nombre, p.nombre
+from pokemon p, movimiento m, pokemon_movimiento_forma pfe
+where p.numero_pokedex = pfe.numero_pokedex
+and m.id_movimiento = pfe.id_movimiento
+and p.nombre = 'Pikachu' group by m.nombre;
 -- 16. Movimientos que aprende pikachu por MT (tipo de aprendizaje).
 select pokemon.nombre as Nombre, mt.mt as Movimientos from pokemon
 inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
 inner join mt on pokemon_movimiento_forma.id_forma_aprendizaje=mt.id_forma_aprendizaje
 where pokemon.nombre="Pikachu" group by mt.mt order by mt.mt;
--- REVISAR
+-- 16.1 Otra Opcion --
+select m.nombre as 'Nombre de ataque', p.nombre as 'Pokemon', tfa.tipo_aprendizaje as 'Tipo de aprendizaje' 
+from pokemon p, movimiento m, pokemon_movimiento_forma pmf, forma_aprendizaje fa, tipo_forma_aprendizaje tfa
+where p.numero_pokedex = pmf.numero_pokedex
+and m.id_movimiento = pmf.id_movimiento
+and pmf.id_forma_aprendizaje = fa.id_forma_aprendizaje
+and fa.id_tipo_aprendizaje = tfa.id_tipo_aprendizaje
+and p.nombre = 'Pikachu'
+and tfa.tipo_aprendizaje = 'MT';
 -- 17. Movimientos de tipo normal que aprende pikachu por nivel.
 select pokemon.nombre as Nombre, nivel_aprendizaje.nivel as Niveles from pokemon
 inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
 inner join nivel_aprendizaje on pokemon_movimiento_forma.id_forma_aprendizaje=nivel_aprendizaje.id_forma_aprendizaje
 where pokemon.nombre="Pikachu" group by nivel_aprendizaje.id_forma_aprendizaje order by nivel_aprendizaje.nivel;
--- REVISAR
+-- 17.1 Otra Opcion --
+select m.nombre as 'Nombre de ataque', p.nombre as 'Pokemon', t.nombre as 'Tipo de ataque', na.nivel as 'Nivel'
+from pokemon p, movimiento m, pokemon_movimiento_forma pmf, forma_aprendizaje fa, tipo_forma_aprendizaje tfa, nivel_aprendizaje na, tipo t
+where p.numero_pokedex = pmf.numero_pokedex
+and m.id_movimiento = pmf.id_movimiento
+and pmf.id_forma_aprendizaje = fa.id_forma_aprendizaje
+and pmf.id_forma_aprendizaje = na.id_forma_aprendizaje
+and fa.id_tipo_aprendizaje = tfa.id_tipo_aprendizaje
+and m.id_tipo = t.id_tipo
+and p.nombre = 'Pikachu'
+and t.nombre = 'Normal' order by na.nivel;
 -- 18. Movimientos de efecto secundario cuya probabilidad sea mayor al 30%.
 select movimiento.nombre as Movimiento, movimiento_efecto_secundario.probabilidad as Probabilidad from movimiento
 inner join movimiento_efecto_secundario on movimiento.id_movimiento=movimiento_efecto_secundario.id_movimiento
@@ -82,7 +105,10 @@ inner join pokemon_forma_evolucion on pokemon.numero_pokedex=pokemon_forma_evolu
 inner join forma_evolucion on pokemon_forma_evolucion.id_forma_evolucion=forma_evolucion.id_forma_evolucion
 inner join tipo_evolucion on forma_evolucion.tipo_evolucion=tipo_evolucion.id_tipo_evolucion
 where tipo_evolucion.tipo_evolucion is null order by pokemon.nombre;
--- REVISAR
+-- 20.1 Otra Opcion --
+select p.nombre
+from pokemon p inner join evoluciona_de ed
+on p.numero_pokedex = ed.pokemon_evolucionado;
 -- 21. Cantidad de los pokemon de cada tipo.
 select tipo.nombre as Tipo, count(pokemon.nombre) as CantidadPokemon from pokemon
 inner join pokemon_tipo on pokemon.numero_pokedex=pokemon_tipo.numero_pokedex

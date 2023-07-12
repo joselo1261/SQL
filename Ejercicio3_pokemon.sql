@@ -5,34 +5,34 @@ select nombre as Nombre from pokemon order by nombre;
 select nombre as Nombre, peso as Peso_Kg from pokemon 
 where peso < 10 order by nombre;
 -- 3. Pokemon de tipo agua.
-select tipo.nombre as Tipo , pokemon.nombre as Nombre from pokemon
-inner join pokemon_tipo on pokemon.numero_pokedex=pokemon_tipo.numero_pokedex
-inner join tipo on pokemon_tipo.id_tipo=tipo.id_tipo
-where tipo.nombre="Agua" order by nombre;
+select t.nombre as Tipo , po.nombre as Nombre from pokemon po
+inner join pokemon_tipo pt on po.numero_pokedex=pt.numero_pokedex
+inner join tipo t on pt.id_tipo=t.id_tipo
+where t.nombre="Agua" order by nombre;
 -- 4. Pokemon de tipo agua, fuego o tierra ordenados por tipo.
-select tipo.nombre as Tipo , pokemon.nombre as Nombre from pokemon
-inner join pokemon_tipo on pokemon.numero_pokedex=pokemon_tipo.numero_pokedex
-inner join tipo on pokemon_tipo.id_tipo=tipo.id_tipo order by tipo, nombre;
+select t.nombre as Tipo , po.nombre as Nombre from pokemon po
+inner join pokemon_tipo pt on po.numero_pokedex=pt.numero_pokedex
+inner join tipo t on pt.id_tipo=t.id_tipo order by tipo, nombre;
 -- 5. Pokemon que son de tipo fuego y volador.
-select tipo.nombre as Tipo , pokemon.nombre as Nombre from pokemon
-inner join pokemon_tipo on pokemon.numero_pokedex=pokemon_tipo.numero_pokedex
-inner join tipo on pokemon_tipo.id_tipo=tipo.id_tipo 
-where tipo.nombre in ("Fuego","Volador") order by tipo, nombre;
+select t.nombre as Tipo , po.nombre as Nombre from pokemon po
+inner join pokemon_tipo pt on po.numero_pokedex=pt.numero_pokedex
+inner join tipo t on pt.id_tipo=t.id_tipo 
+where t.nombre in ("Fuego","Volador") order by tipo, nombre;
 -- 6. Pokemon con una estadística base de ps mayor que 200.
-select pokemon.nombre as Nombre, estadisticas_base.ps from pokemon
-inner join estadisticas_base on pokemon.numero_pokedex=estadisticas_base.numero_pokedex
-where estadisticas_base.ps > 200;
+select po.nombre as Nombre, eb.ps from pokemon po
+inner join estadisticas_base eb on po.numero_pokedex=eb.numero_pokedex
+where eb.ps > 200;
 -- 7. Datos(nombre, peso, altura) de la prevolución de Arbok.
 select p.nombre as Nombre, p.peso as Peso, p.altura as Altura from pokemon p
 inner join evoluciona_de e on p.numero_pokedex = e.pokemon_origen
 inner join pokemon p1 on e.pokemon_evolucionado = p1.numero_pokedex
 where p1.nombre = "Arbok";
 -- 8. Pokemon que evolucionan por intercambio.
-select pokemon.nombre as Nombre, tipo_evolucion.tipo_evolucion as Evolucion from pokemon
-inner join pokemon_forma_evolucion on pokemon.numero_pokedex=pokemon_forma_evolucion.numero_pokedex
-inner join forma_evolucion on pokemon_forma_evolucion.id_forma_evolucion=forma_evolucion.tipo_evolucion
-inner join tipo_evolucion on forma_evolucion.tipo_evolucion=tipo_evolucion.id_tipo_evolucion
-where tipo_evolucion.tipo_evolucion="Intercambio" order by Nombre;
+select po.nombre as Nombre, te.tipo_evolucion as Evolucion from pokemon po
+inner join pokemon_forma_evolucion pfe on po.numero_pokedex=pfe.numero_pokedex
+inner join forma_evolucion fe on pfe.id_forma_evolucion=fe.tipo_evolucion
+inner join tipo_evolucion te on fe.tipo_evolucion=te.id_tipo_evolucion
+where te.tipo_evolucion="Intercambio" order by Nombre;
 -- 9. Nombre del movimiento con más prioridad.
 select nombre as NombrePrioridad from movimiento order by prioridad desc limit 1;
 -- 10. Pokemon más pesado.
@@ -49,10 +49,10 @@ where descripcion like "%Envenena%" order by nombre;
 select distinct nombre as Nombre, descripcion as Descripcion from movimiento
 where descripcion like "%causa daño%" order by nombre;
 -- 15. Movimientos que aprende Pikachu.
-select pokemon.nombre as Nombre, movimiento.nombre as Movimientos from pokemon
-inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
-inner join movimiento on pokemon_movimiento_forma.id_movimiento=movimiento.id_movimiento
-where pokemon.nombre="Pikachu" group by movimiento.nombre order by movimiento.nombre;
+select po.nombre as Nombre, mov.nombre as Movimientos from pokemon po
+inner join pokemon_movimiento_forma pmf on po.numero_pokedex=pmf.numero_pokedex
+inner join movimiento mov on pmf.id_movimiento=mov.id_movimiento
+where po.nombre="Pikachu" group by mov.nombre order by mov.nombre;
 -- 15.1 Otra opcion --
 select m.nombre, p.nombre
 from pokemon p, movimiento m, pokemon_movimiento_forma pfe
@@ -60,10 +60,10 @@ where p.numero_pokedex = pfe.numero_pokedex
 and m.id_movimiento = pfe.id_movimiento
 and p.nombre = 'Pikachu' group by m.nombre;
 -- 16. Movimientos que aprende pikachu por MT (tipo de aprendizaje).
-select pokemon.nombre as Nombre, mt.mt as Movimientos from pokemon
-inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
-inner join mt on pokemon_movimiento_forma.id_forma_aprendizaje=mt.id_forma_aprendizaje
-where pokemon.nombre="Pikachu" group by mt.mt order by mt.mt;
+select po.nombre as Nombre, mt.mt as Movimientos from pokemon po
+inner join pokemon_movimiento_forma pmf on po.numero_pokedex=pmf.numero_pokedex
+inner join mt on pmf.id_forma_aprendizaje=mt.id_forma_aprendizaje
+where po.nombre="Pikachu" group by mt.mt order by mt.mt;
 -- 16.1 Otra Opcion --
 select m.nombre as 'Nombre de ataque', p.nombre as 'Pokemon', tfa.tipo_aprendizaje as 'Tipo de aprendizaje' 
 from pokemon p, movimiento m, pokemon_movimiento_forma pmf, forma_aprendizaje fa, tipo_forma_aprendizaje tfa
@@ -74,10 +74,10 @@ and fa.id_tipo_aprendizaje = tfa.id_tipo_aprendizaje
 and p.nombre = 'Pikachu'
 and tfa.tipo_aprendizaje = 'MT';
 -- 17. Movimientos de tipo normal que aprende pikachu por nivel.
-select pokemon.nombre as Nombre, nivel_aprendizaje.nivel as Niveles from pokemon
-inner join pokemon_movimiento_forma on pokemon.numero_pokedex=pokemon_movimiento_forma.numero_pokedex
-inner join nivel_aprendizaje on pokemon_movimiento_forma.id_forma_aprendizaje=nivel_aprendizaje.id_forma_aprendizaje
-where pokemon.nombre="Pikachu" group by nivel_aprendizaje.id_forma_aprendizaje order by nivel_aprendizaje.nivel;
+select po.nombre as Nombre, na.nivel as Niveles from pokemon po
+inner join pokemon_movimiento_forma pmf on po.numero_pokedex=pmf.numero_pokedex
+inner join nivel_aprendizaje na on pmf.id_forma_aprendizaje=na.id_forma_aprendizaje
+where po.nombre="Pikachu" group by na.id_forma_aprendizaje order by na.nivel;
 -- 17.1 Otra Opcion --
 select m.nombre as 'Nombre de ataque', p.nombre as 'Pokemon', t.nombre as 'Tipo de ataque', na.nivel as 'Nivel'
 from pokemon p, movimiento m, pokemon_movimiento_forma pmf, forma_aprendizaje fa, tipo_forma_aprendizaje tfa, nivel_aprendizaje na, tipo t
@@ -90,27 +90,28 @@ and m.id_tipo = t.id_tipo
 and p.nombre = 'Pikachu'
 and t.nombre = 'Normal' order by na.nivel;
 -- 18. Movimientos de efecto secundario cuya probabilidad sea mayor al 30%.
-select movimiento.nombre as Movimiento, movimiento_efecto_secundario.probabilidad as Probabilidad from movimiento
-inner join movimiento_efecto_secundario on movimiento.id_movimiento=movimiento_efecto_secundario.id_movimiento
-where movimiento_efecto_secundario.probabilidad > 30 order by Movimiento;
+select mov.nombre as Movimiento, mes.probabilidad as Probabilidad from movimiento mov
+inner join movimiento_efecto_secundario mes on mov.id_movimiento=mes.id_movimiento
+where mes.probabilidad > 30 order by Movimiento;
 -- 19. Pokemon que evolucionan por piedra.
-select pokemon.nombre as Nombre, tipo_evolucion.tipo_evolucion as Evolucion from pokemon
-inner join pokemon_forma_evolucion on pokemon.numero_pokedex=pokemon_forma_evolucion.numero_pokedex
-inner join forma_evolucion on pokemon_forma_evolucion.id_forma_evolucion=forma_evolucion.id_forma_evolucion
-inner join tipo_evolucion on forma_evolucion.tipo_evolucion=tipo_evolucion.id_tipo_evolucion
-where tipo_evolucion.tipo_evolucion="Piedra" group by pokemon.nombre order by pokemon.nombre;
+select po.nombre as Nombre, te.tipo_evolucion as Evolucion from pokemon po
+inner join pokemon_forma_evolucion pfe on po.numero_pokedex=pfe.numero_pokedex
+inner join forma_evolucion fe on pfe.id_forma_evolucion=fe.id_forma_evolucion
+inner join tipo_evolucion te on fe.tipo_evolucion=te.id_tipo_evolucion
+where te.tipo_evolucion="Piedra" group by po.nombre order by po.nombre;
 -- 20. Pokemon que no pueden evolucionar.
-select pokemon.nombre as Nombre, tipo_evolucion.tipo_evolucion as Evolucion from pokemon
-inner join pokemon_forma_evolucion on pokemon.numero_pokedex=pokemon_forma_evolucion.numero_pokedex
-inner join forma_evolucion on pokemon_forma_evolucion.id_forma_evolucion=forma_evolucion.id_forma_evolucion
-inner join tipo_evolucion on forma_evolucion.tipo_evolucion=tipo_evolucion.id_tipo_evolucion
-where tipo_evolucion.tipo_evolucion is null order by pokemon.nombre;
+select po.nombre as Nombre, te.tipo_evolucion as Evolucion from pokemon po
+inner join pokemon_forma_evolucion pfe on po.numero_pokedex=pfe.numero_pokedex
+inner join forma_evolucion fe on pfe.id_forma_evolucion=fe.id_forma_evolucion
+inner join tipo_evolucion te on fe.tipo_evolucion=te.id_tipo_evolucion
+where te.tipo_evolucion is null order by po.nombre;
+-- REVISAR
 -- 20.1 Otra Opcion --
 select p.nombre
 from pokemon p inner join evoluciona_de ed
 on p.numero_pokedex = ed.pokemon_evolucionado;
 -- 21. Cantidad de los pokemon de cada tipo.
-select tipo.nombre as Tipo, count(pokemon.nombre) as CantidadPokemon from pokemon
-inner join pokemon_tipo on pokemon.numero_pokedex=pokemon_tipo.numero_pokedex
-inner join tipo on pokemon_tipo.id_tipo=tipo.id_tipo
-group by tipo.nombre order by tipo.nombre;
+select t.nombre as Tipo, count(po.nombre) as CantidadPokemon from pokemon po
+inner join pokemon_tipo pt on po.numero_pokedex=pt.numero_pokedex
+inner join tipo t on pt.id_tipo=t.id_tipo
+group by t.nombre order by t.nombre;

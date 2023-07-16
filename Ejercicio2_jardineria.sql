@@ -85,7 +85,8 @@ inner join empleado e on c.codigo_empleado_rep_ventas = e.codigo_empleado
 left join pago p on p.codigo_cliente=c.codigo_cliente where p.fecha_pago is null 
 order by c.nombre_cliente;
 -- 4. Nombre clientes con pagos y nombre representante y ciudad oficina representante.
-select c.nombre_cliente as Cliente, p.fecha_pago as Pago, e.nombre as Vendedor, o.ciudad as Ciudad from cliente c
+select c.nombre_cliente as Cliente, p.fecha_pago as Pago, e.nombre as Vendedor, o.ciudad as Ciudad 
+from cliente c
 inner join empleado e on c.codigo_empleado_rep_ventas = e.codigo_empleado 
 inner join pago p on p.codigo_cliente=c.codigo_cliente 
 inner join oficina o on e.codigo_oficina=o.codigo_oficina 
@@ -112,9 +113,10 @@ right join empleado as E1 on E1.codigo_jefe = E2.codigo_empleado;
 select c.codigo_cliente as Cliente, c.nombre_cliente as Nombre, p.fecha_esperada as Prometido,
 p.fecha_entrega as Entregado, datediff(p.fecha_entrega,p.fecha_esperada) as Diferencia from cliente c
 inner join pedido p on p.codigo_cliente=c.codigo_cliente 
-where datediff(p.fecha_entrega,p.fecha_esperada)>0 order by c.nombre_cliente;
+where datediff(p.fecha_entrega,p.fecha_esperada)>0 
+order by c.nombre_cliente;
 -- 10. Diferentes gamas de producto que ha comprado cada cliente.
-select c.codigo_cliente as Cliente, c.nombre_cliente as Nombre, pr.gama as Gama from cliente c
+select c.codigo_cliente as NroCliente, c.nombre_cliente as NombreCliente, pr.gama as Gama from cliente c
 inner join pedido p on p.codigo_cliente=c.codigo_cliente
 inner join detalle_pedido dp on p.codigo_pedido=dp.codigo_pedido
 inner join producto pr on dp.codigo_producto=pr.codigo_producto
@@ -138,29 +140,31 @@ where p.fecha_pedido is null and pa.fecha_pago is null ;
 select e.nombre as Empleado, e.codigo_oficina from empleado e
 left join oficina o on e.codigo_oficina=o.codigo_oficina
 where o.codigo_oficina is null;
--- REVISAR
 -- 5. Empleados que no tienen un cliente asociado.
 select e.nombre as Empleado, c.nombre_cliente as Cliente from empleado e
 left join cliente c on c.codigo_empleado_rep_ventas=e.codigo_empleado
-where c.codigo_empleado_rep_ventas is null order by e.nombre;
+where c.codigo_empleado_rep_ventas is null 
+order by e.nombre;
 -- 6. Empleados no tienen una oficina asociada y no tienen un cliente asociado.
 select e.nombre as Empleado, c.nombre_cliente as Cliente, e.codigo_oficina from empleado e
 left join oficina o on e.codigo_oficina=o.codigo_oficina
 left join cliente c on c.codigo_empleado_rep_ventas=e.codigo_empleado
-where o.codigo_oficina is null and c.codigo_empleado_rep_ventas is null order by e.nombre;
+where o.codigo_oficina is null and c.codigo_empleado_rep_ventas is null 
+order by e.nombre;
 -- REVISAR
 -- 7. Productos que nunca han aparecido en un pedido.
 select pr.nombre as Producto, dp.codigo_pedido as Pedido from producto pr
 left join detalle_pedido dp on pr.codigo_producto=dp.codigo_producto
-where dp.codigo_pedido is null group by nombre, pedido 
+where dp.codigo_pedido is null 
+group by nombre, pedido 
 order by pr.nombre ;
 -- 8. Oficinas sin ningun empleado que hayan sido representante ventas 
 -- de un cliente que haya realizado la compra de algún producto de la gama Frutales.
 select c.nombre_cliente as Nombre,p.codigo_cliente as Pedido,pr.gama as Gama from cliente c
-inner join pedido p on c.codigo_cliente=p.codigo_cliente
-inner join detalle_pedido dp on dp.codigo_pedido=p.codigo_pedido
-inner join producto pr on dp.codigo_producto=pr.codigo_producto
-inner join empleado e on c.codigo_empleado_rep_ventas=e.codigo_empleado
+left join pedido p on c.codigo_cliente=p.codigo_cliente
+left join detalle_pedido dp on dp.codigo_pedido=p.codigo_pedido
+left join producto pr on dp.codigo_producto=pr.codigo_producto
+left join empleado e on c.codigo_empleado_rep_ventas=e.codigo_empleado
 where e.puesto<>"Representante Ventas" and pr.gama="Frutales"
 group by c.nombre_cliente,p.codigo_cliente,pr.gama;
 -- 9. Clientes que han realizado algún pedido, pero no han realizado ningún pago.
@@ -172,7 +176,8 @@ where p.fecha_pedido is not null and pa.fecha_pago is null;
 select distinct e2.nombre as Empelado, e1.nombre as Jefe, c.nombre_cliente  from empleado as e1
 inner join empleado as e2 on e1.codigo_empleado = e2.codigo_jefe
 left join cliente c on c.codigo_empleado_rep_ventas = e1.codigo_empleado
-where c.nombre_cliente is null group by 1,2,3 order by e1.nombre,e2.nombre; 
+where c.nombre_cliente is null group by 1,2,3 
+order by e1.nombre,e2.nombre; 
 
 -- Consultas resumen
 -- 1. Cuántos empleados hay en la compañía.
@@ -201,16 +206,21 @@ select count(*) from cliente where ciudad like"M%";
 -- 9. Nombre representantes de ventas y número clientes que atiende cada uno.
 select e.nombre as Empleado, count(c.nombre_cliente) as CantidadClientes from empleado e
 inner join cliente c on c.codigo_empleado_rep_ventas=e.codigo_empleado
-where puesto="Representante Ventas" group by e.nombre order by e.nombre;
+where puesto="Representante Ventas" 
+group by e.nombre 
+order by e.nombre;
 -- 10. Número clientes que no tiene asignado representante de ventas.
 select e.nombre as Empleado, count(c.nombre_cliente) as CantidadClientes from empleado e
 inner join cliente c on c.codigo_empleado_rep_ventas=e.codigo_empleado
-where puesto<>"Representante Ventas" group by e.nombre order by e.nombre;
+where puesto<>"Representante Ventas" 
+group by e.nombre 
+order by e.nombre;
 -- 11. Fecha primer y último pago por clientes. 
 -- El listado deberá mostrar el nombre y los apellidos de cada cliente.
 select pa.codigo_cliente as ClienteNro, c.nombre_contacto as Nombre,c.apellido_contacto as Apellido, min(pa.fecha_pago) as PrimerPago, max(pa.fecha_pago) as UltimoPago from pago pa
 inner join cliente c on pa.codigo_cliente=c.codigo_cliente
-group by pa.codigo_cliente order by c.nombre_contacto;
+group by pa.codigo_cliente 
+order by c.nombre_contacto;
 -- 12. Número de productos diferentes que hay en cada uno de los pedidos.
 select codigo_pedido as PedidoNro, count(codigo_producto) as CantidadProductos from detalle_pedido
 group by codigo_pedido;
@@ -221,7 +231,8 @@ group by codigo_pedido;
 -- ordenado por número total de unidades vendidas.
 select dp.codigo_producto as CodigoProd, pr.nombre as NombreProd, count(dp.codigo_producto) as CantidadProductos, sum(dp.cantidad) as CantidadVendida from detalle_pedido dp
 inner join producto pr on dp.codigo_producto=pr.codigo_producto
-group by dp.codigo_producto order by sum(dp.cantidad) desc limit 20;
+group by dp.codigo_producto 
+order by sum(dp.cantidad) desc limit 20;
 -- 15. Facturación empresa en toda la historia, indicando la base imponible, el IVA y el total facturado. 
 -- La base imponible se calcula sumando el coste del producto por el número de unidades vendidas de la tabla detalle_pedido. 
 -- El IVA es el 21 % de la base imponible, y el total la suma de los dos campos anteriores.
@@ -233,14 +244,17 @@ from detalle_pedido ;
 select codigo_producto as Producto, round(sum(cantidad*precio_unidad)) as Facturacion, 
 round((sum(cantidad*precio_unidad)*0.21)) as IVA,
 round((sum(cantidad*precio_unidad)*1.21)) as TotalFacturado
-from detalle_pedido group by codigo_producto order by codigo_producto;
+from detalle_pedido 
+group by codigo_producto 
+order by codigo_producto;
 -- 17. La misma información pregunta anterior agrupada por código de producto 
 -- filtrada por los códigos que empiecen por OR.
 select codigo_producto as Producto, round(sum(cantidad*precio_unidad)) as Facturacion, 
 round((sum(cantidad*precio_unidad)*0.21)) as IVA,
 round((sum(cantidad*precio_unidad)*1.21)) as TotalFacturado
 from detalle_pedido where codigo_producto like "OR%" 
-group by codigo_producto order by codigo_producto;
+group by codigo_producto 
+order by codigo_producto;
 -- 18. Ventas totales productos facturados más de 3000 euros. 
 -- 	Nombre, unidades vendidas, total facturado y total facturado con impuestos (21% IVA)
 select dp.codigo_producto as Codigo, p.nombre as Nombre, round(sum(dp.cantidad)) as UnidadesVendidas, round(sum(dp.cantidad*dp.precio_unidad)) as Facturacion,
@@ -248,7 +262,8 @@ round((sum(dp.cantidad*dp.precio_unidad)*0.21)) as IVA,
 round((sum(dp.cantidad*dp.precio_unidad)*1.21)) as TotalFacturado
 from detalle_pedido dp
 inner join producto p on p.codigo_producto=dp.codigo_producto
-group by dp.codigo_producto Having round(sum(dp.cantidad*dp.precio_unidad)) > 3000
+group by dp.codigo_producto 
+Having round(sum(dp.cantidad*dp.precio_unidad)) > 3000
 order by dp.codigo_producto;
 
 -- Subconsultas con operadores básicos de comparación
@@ -261,12 +276,14 @@ order by precio_venta desc limit 1;
 -- 3. Nombre del producto con mas ventas. Calcular número total unidades vendidas. 
 select pr.codigo_producto as Producto, pr.nombre as NombreProducto, round(sum(dp.cantidad)) as UnidadesVendidas from detalle_pedido dp
 inner join producto pr on dp.codigo_producto=pr.codigo_producto
-group by dp.codigo_producto order by round(sum(dp.cantidad)) desc limit 1;
+group by dp.codigo_producto 
+order by round(sum(dp.cantidad)) desc limit 1;
 -- 4. Clientes cuyo límite de crédito sea mayor que los pagos que haya realizado.(Sin utilizar INNER JOIN).
 select c.nombre_cliente as Cliente, round(c.limite_credito) as LimiteCredito,
 round((select sum(total) from pago p where p.codigo_cliente = c.codigo_cliente)) as TotalPagos,
 round(c.limite_credito - (select sum(total) from pago p where p.codigo_cliente=c.codigo_cliente)) as Diferencia
-from cliente c where round(c.limite_credito)>round((select sum(total) from pago p where p.codigo_cliente = c.codigo_cliente))
+from cliente c where round(c.limite_credito)>round((select sum(total) from pago p 
+where p.codigo_cliente = c.codigo_cliente))
 order by c.nombre_cliente;
 -- 5. Producto que más unidades tiene en stock.
 select nombre as Nombre, cantidad_en_stock as Stock, (max(cantidad_en_stock)) as StockMayor from producto
@@ -318,32 +335,41 @@ select nombre as Nombre, apellido1 as Apellido , puesto as Cargo from empleado
 where codigo_empleado not in (select codigo_empleado_rep_ventas from cliente);
 -- 2. Clientes que no han realizado ningún pago.
 select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
-where codigo_cliente not in (select codigo_cliente from pago) order by nombre_cliente;
+where codigo_cliente not in (select codigo_cliente from pago) 
+order by nombre_cliente;
 -- 3. Clientes que sí han realizado ningún pago.
 select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
-where codigo_cliente in (select codigo_cliente from pago) order by nombre_cliente;
+where codigo_cliente in (select codigo_cliente from pago) 
+order by nombre_cliente;
 -- 4. Productos que nunca han aparecido en un pedido.
 select codigo_producto as ProductoNro, nombre as Producto from producto
-where codigo_producto not in (select codigo_producto from detalle_pedido) order by codigo_producto;
+where codigo_producto not in (select codigo_producto from detalle_pedido) 
+order by codigo_producto;
 -- 5. Nombre,apellidos,puesto y teléfono oficina empleados que no sean representante de ventas ningun cliente.
 select nombre as Nombre, apellido1 as Apellido , puesto as Cargo, extension as TelInterno from empleado
 where codigo_empleado not in (select codigo_empleado_rep_ventas from cliente) 
 and codigo_oficina in (select codigo_oficina from oficina)
-and puesto<>"Representante Ventas" order by puesto;
+and puesto<>"Representante Ventas" 
+order by puesto;
 
 -- Subconsultas con EXISTS y NOT EXISTS
 -- 1. Listado Clientes que no han realizado ningún pago.
 select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
-where not exists(select * from pago where cliente.codigo_cliente=pago.codigo_cliente) order by nombre_cliente;
+where not exists(select * from pago 
+where cliente.codigo_cliente=pago.codigo_cliente) 
+order by nombre_cliente;
 -- 2. Listado que muestre solamente los clientes que sí han realizado ningún pago.
 select codigo_cliente as NroCliente, nombre_cliente as Nombre from cliente
-where exists(select * from pago where cliente.codigo_cliente=pago.codigo_cliente) order by nombre_cliente;
+where exists(select * from pago where cliente.codigo_cliente=pago.codigo_cliente) 
+order by nombre_cliente;
 -- 3. Listado de los productos que nunca han aparecido en un pedido.
 select codigo_producto as ProductoNro, nombre as Producto from producto
-where  not exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) order by codigo_producto;
+where  not exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) 
+order by codigo_producto;
 -- 4. Listado de los productos que han aparecido en un pedido alguna vez.
 select codigo_producto as ProductoNro, nombre as Producto from producto
-where  exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) order by codigo_producto;
+where  exists (select * from detalle_pedido where producto.codigo_producto=detalle_pedido.codigo_producto) 
+order by codigo_producto;
 
 
 
